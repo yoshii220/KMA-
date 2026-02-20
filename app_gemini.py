@@ -10,7 +10,7 @@ import logging
 
 from src.vector_store_free import VectorStoreManager
 from src.chatbot_gemini import JTBCSupportChatbot
-from src.scheduler import UpdateScheduler
+# from src.scheduler import UpdateScheduler  # スケジューラーは一時的に無効化
 
 # 環境変数のロード
 load_dotenv()
@@ -52,6 +52,8 @@ def initialize_app():
         )
         
         # スケジューラーの開始（必要に応じて）
+        # スケジューラーは一時的に無効化
+        scheduler = None
         # update_interval = int(os.getenv('UPDATE_INTERVAL_HOURS', 24))
         # logger.info(f"Starting scheduler (interval: {update_interval} hours)...")
         # scheduler = UpdateScheduler(interval_hours=update_interval)

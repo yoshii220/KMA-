@@ -6,8 +6,8 @@ import json
 from typing import List, Dict
 import logging
 from langchain_community.vectorstores import Chroma
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import os
 
@@ -30,7 +30,7 @@ class VectorStoreManager:
             # 無料のHuggingFace Embeddingsを使用（日本語対応）
             logger.info("Using free HuggingFace Embeddings")
             self.embeddings = HuggingFaceEmbeddings(
-                model_name="intfloat/multilingual-e5-small",  # 軽量な多言語モデル
+                model_name="sentence-transformers/all-MiniLM-L6-v2",  # 超軽量モデル
                 model_kwargs={'device': 'cpu'},
                 encode_kwargs={'normalize_embeddings': True}
             )

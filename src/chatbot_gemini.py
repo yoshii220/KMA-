@@ -1,12 +1,9 @@
 """
-チャットボット - Gemini版
+チャットボット - Gemini版（シンプル版）
 HuggingFace Embeddings（無料）+ Google Gemini（無料枠60/月）
 """
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
 import logging
-import os
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,17 +18,28 @@ class JTBCSupportChatbot:
             model: 使用するGeminiモデル名
         """
         self.vectorstore = vectorstore
+        self.retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
         
         logger.info(f"Using Google Gemini model: {model}")
         self.llm = ChatGoogleGenerativeAI(
             model=model,
             google_api_key=gemini_api_key,
             temperature=0.7,
-            convert_system_message_to_human=True  # Gemini用の設定
         )
-        
-        # プロンプトテンプレートの設定
-        self.prompt_template = """あなたはJTBCのサポートデスクのアシスタントです。
+    
+    def ask(self, question: str) -> dict:
+        """質問に対する回答を生成"""
+        try:
+            logger.info(f"Processing question: {question}")
+            
+            # 関連ドキュメントを検索
+            docs = self.retriever.get_relevant_documents(question)
+            
+            # コンテキストを作成
+            context = "\n\n".join([doc.page_content for doc in docs])
+            
+            # プロンプトを作成
+            prompt = f"""あなたはJTBCのサポートデスクのアシスタントです。
 以下の情報を基に、ユーザーの質問に親切に、わかりやすく日本語で回答してください。
 
 参考情報:
@@ -42,37 +50,17 @@ class JTBCSupportChatbot:
 回答: 情報を基に、丁寧に説明してください。参考情報に関連する内容が見つからない場合は、
 「申し訳ございませんが、その情報は現在のサポートページには見つかりませんでした。
 詳しくは公式サポートページをご確認いただくか、直接お問い合わせください。」と回答してください。"""
-
-        self.prompt = PromptTemplate(
-            template=self.prompt_template,
-            input_variables=["context", "question"]
-        )
-        
-        # QAチェーンの作成
-        self.qa_chain = RetrievalQA.from_chain_type(
-            llm=self.llm,
-            chain_type="stuff",
-            retriever=self.vectorstore.as_retriever(
-                search_kwargs={"k": 4}
-            ),
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": self.prompt}
-        )
-    
-    def ask(self, question: str) -> dict:
-        """質問に対する回答を生成"""
-        try:
-            logger.info(f"Processing question: {question}")
             
-            result = self.qa_chain.invoke({"query": question})
+            # Geminiで回答生成
+            response_text = self.llm.invoke(prompt).content
             
             response = {
-                "answer": result["result"],
+                "answer": response_text,
                 "sources": []
             }
             
             # ソース情報を追加
-            for doc in result.get("source_documents", []):
+            for doc in docs:
                 response["sources"].append({
                     "title": doc.metadata.get("title", ""),
                     "url": doc.metadata.get("url", ""),
@@ -85,6 +73,8 @@ class JTBCSupportChatbot:
             
         except Exception as e:
             logger.error(f"Error generating response: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "answer": "申し訳ございません。回答の生成中にエラーが発生しました。もう一度お試しください。",
                 "sources": []
