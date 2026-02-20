@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JTBCサポートデスク チャットボット</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🤖 JTBCサポートデスク</h1>
+            <p class="subtitle">お困りのことがあれば、お気軽にお尋ねください</p>
+        </header>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>こんにちは！JTBCサポートデスクのアシスタントです。</p>
+                        <p>ご質問がございましたら、お気軽にお聞きください。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="suggestions" id="suggestions">
+                <p class="suggestions-title">よくある質問:</p>
+                <div class="suggestions-buttons" id="suggestionsButtons"></div>
+            </div>
+
+            <div class="chat-input-container">
+                <textarea 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="質問を入力してください..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton">
+                    <span>送信</span>
+                </button>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>このチャットボットはJTBCサポートサイトの情報に基づいて回答します</p>
+            <button class="update-button" id="updateButton">🔄 データを更新</button>
+        </footer>
+    </div>
+
+    <div class="loading" id="loading" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
